@@ -583,7 +583,7 @@
     self.toolbar.alpha = 1.000;
     self.toolbar.autoresizesSubviews = YES;
     self.toolbar.autoresizingMask = toolbarIsAtBottom ? (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin) : UIViewAutoresizingFlexibleWidth;
-    self.toolbar.barStyle = UIBarStyleBlackOpaque;
+    self.toolbar.barStyle = UIBarButtonItemStylePlain;
     self.toolbar.clearsContextBeforeDrawing = NO;
     self.toolbar.clipsToBounds = NO;
     self.toolbar.contentMode = UIViewContentModeScaleToFill;
@@ -629,12 +629,20 @@
     self.forwardButton.enabled = YES;
     self.forwardButton.imageInsets = UIEdgeInsetsZero;
 
-    NSString* backArrowString = NSLocalizedString(@"◄", nil); // create arrow from Unicode char
+    NSString* backArrowString = NSLocalizedString(@"<Back", nil); // create arrow from Unicode char
     self.backButton = [[UIBarButtonItem alloc] initWithTitle:backArrowString style:UIBarButtonItemStylePlain target:self action:@selector(goBack:)];
     self.backButton.enabled = YES;
     self.backButton.imageInsets = UIEdgeInsetsZero;
 
-    [self.toolbar setItems:@[self.closeButton, flexibleSpaceButton, self.backButton, fixedSpaceButton, self.forwardButton]];
+    UILabel *toolbarLabel = [[UILabel alloc] initWithFrame:CGRectZero];
+    toolbarLabel.text = @"Car Hire";
+    [toolbarLabel sizeToFit];
+    toolbarLabel.backgroundColor = [UIColor clearColor];
+    toolbarLabel.textAlignment = NSTextAlignmentCenter;
+    UIBarButtonItem *labelItem = [[UIBarButtonItem alloc] initWithCustomView:toolbarLabel];
+    
+    
+    [self.toolbar setItems:@[self.backButton, flexibleSpaceButton, labelItem, flexibleSpaceButton, self.closeButton]];
 
     self.view.backgroundColor = [UIColor grayColor];
     [self.view addSubview:self.toolbar];
@@ -727,6 +735,7 @@
     if (show) {
         self.toolbar.hidden = NO;
         CGRect webViewBounds = self.view.bounds;
+        
 
         if (locationbarVisible) {
             // locationBar at the bottom, move locationBar up
@@ -833,7 +842,11 @@
 
 - (void)goBack:(id)sender
 {
-    [self.webView goBack];
+    if (self.webView.canGoBack) {
+        [self.webView goBack];
+    } else {
+        [self close];
+    }
 }
 
 - (void)goForward:(id)sender
@@ -876,7 +889,7 @@
     // loading url, start spinner, update back/forward
 
     self.addressLabel.text = NSLocalizedString(@"Loading...", nil);
-    self.backButton.enabled = theWebView.canGoBack;
+    self.backButton.enabled = YES;
     self.forwardButton.enabled = theWebView.canGoForward;
 
     [self.spinner startAnimating];
@@ -899,7 +912,7 @@
     // update url, stop spinner, update back/forward
 
     self.addressLabel.text = [self.currentURL absoluteString];
-    self.backButton.enabled = theWebView.canGoBack;
+    self.backButton.enabled = YES;
     self.forwardButton.enabled = theWebView.canGoForward;
 
     [self.spinner stopAnimating];
@@ -928,7 +941,7 @@
     // log fail message, stop spinner, update back/forward
     NSLog(@"webView:didFailLoadWithError - %ld: %@", (long)error.code, [error localizedDescription]);
 
-    self.backButton.enabled = theWebView.canGoBack;
+    self.backButton.enabled = YES;
     self.forwardButton.enabled = theWebView.canGoForward;
     [self.spinner stopAnimating];
 
@@ -1049,7 +1062,6 @@
     bgToolbar.barStyle = UIBarStyleDefault;
     [bgToolbar setAutoresizingMask:UIViewAutoresizingFlexibleWidth];
     [self.view addSubview:bgToolbar];
-
     [super viewDidLoad];
 }
 
