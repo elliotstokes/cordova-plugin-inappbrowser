@@ -452,6 +452,8 @@ public class InAppBrowser extends CordovaPlugin {
     public void goBack() {
         if (this.inAppWebView.canGoBack()) {
             this.inAppWebView.goBack();
+        } else {
+            this.closeDialog();
         }
     }
 
@@ -646,52 +648,52 @@ public class InAppBrowser extends CordovaPlugin {
                 });
 
                 // Forward button
-                ImageButton forward = new ImageButton(cordova.getActivity());
-                RelativeLayout.LayoutParams forwardLayoutParams = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
-                forwardLayoutParams.addRule(RelativeLayout.RIGHT_OF, 2);
-                forward.setLayoutParams(forwardLayoutParams);
-                forward.setContentDescription("Forward Button");
-                forward.setId(Integer.valueOf(3));
-                int fwdResId = activityRes.getIdentifier("ic_action_next_item", "drawable", cordova.getActivity().getPackageName());
-                Drawable fwdIcon = activityRes.getDrawable(fwdResId);
-                if (Build.VERSION.SDK_INT >= 16)
-                    forward.setBackground(null);
-                else
-                    forward.setBackgroundDrawable(null);
-                forward.setImageDrawable(fwdIcon);
-                forward.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                forward.setPadding(0, this.dpToPixels(10), 0, this.dpToPixels(10));
-                if (Build.VERSION.SDK_INT >= 16)
-                    forward.getAdjustViewBounds();
-
-                forward.setOnClickListener(new View.OnClickListener() {
-                    public void onClick(View v) {
-                        goForward();
-                    }
-                });
+//                ImageButton forward = new ImageButton(cordova.getActivity());
+//                RelativeLayout.LayoutParams forwardLayoutParams = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
+//                forwardLayoutParams.addRule(RelativeLayout.RIGHT_OF, 2);
+//                forward.setLayoutParams(forwardLayoutParams);
+//                forward.setContentDescription("Forward Button");
+//                forward.setId(Integer.valueOf(3));
+//                int fwdResId = activityRes.getIdentifier("ic_action_next_item", "drawable", cordova.getActivity().getPackageName());
+//                Drawable fwdIcon = activityRes.getDrawable(fwdResId);
+//                if (Build.VERSION.SDK_INT >= 16)
+//                    forward.setBackground(null);
+//                else
+//                    forward.setBackgroundDrawable(null);
+//                forward.setImageDrawable(fwdIcon);
+//                forward.setScaleType(ImageView.ScaleType.FIT_CENTER);
+//                forward.setPadding(0, this.dpToPixels(10), 0, this.dpToPixels(10));
+//                if (Build.VERSION.SDK_INT >= 16)
+//                    forward.getAdjustViewBounds();
+//
+//                forward.setOnClickListener(new View.OnClickListener() {
+//                    public void onClick(View v) {
+//                        goForward();
+//                    }
+//                });
 
                 // Edit Text Box
-                edittext = new EditText(cordova.getActivity());
-                RelativeLayout.LayoutParams textLayoutParams = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-                textLayoutParams.addRule(RelativeLayout.RIGHT_OF, 1);
-                textLayoutParams.addRule(RelativeLayout.LEFT_OF, 5);
-                edittext.setLayoutParams(textLayoutParams);
-                edittext.setId(Integer.valueOf(4));
-                edittext.setSingleLine(true);
-                edittext.setText(url);
-                edittext.setInputType(InputType.TYPE_TEXT_VARIATION_URI);
-                edittext.setImeOptions(EditorInfo.IME_ACTION_GO);
-                edittext.setInputType(InputType.TYPE_NULL); // Will not except input... Makes the text NON-EDITABLE
-                edittext.setOnKeyListener(new View.OnKeyListener() {
-                    public boolean onKey(View v, int keyCode, KeyEvent event) {
-                        // If the event is a key-down event on the "enter" button
-                        if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
-                          navigate(edittext.getText().toString());
-                          return true;
-                        }
-                        return false;
-                    }
-                });
+//                edittext = new EditText(cordova.getActivity());
+//                RelativeLayout.LayoutParams textLayoutParams = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+//                textLayoutParams.addRule(RelativeLayout.RIGHT_OF, 1);
+//                textLayoutParams.addRule(RelativeLayout.LEFT_OF, 5);
+//                edittext.setLayoutParams(textLayoutParams);
+//                edittext.setId(Integer.valueOf(4));
+//                edittext.setSingleLine(true);
+//                edittext.setText(url);
+//                edittext.setInputType(InputType.TYPE_TEXT_VARIATION_URI);
+//                edittext.setImeOptions(EditorInfo.IME_ACTION_GO);
+//                edittext.setInputType(InputType.TYPE_NULL); // Will not except input... Makes the text NON-EDITABLE
+//                edittext.setOnKeyListener(new View.OnKeyListener() {
+//                    public boolean onKey(View v, int keyCode, KeyEvent event) {
+//                        // If the event is a key-down event on the "enter" button
+//                        if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
+//                          navigate(edittext.getText().toString());
+//                          return true;
+//                        }
+//                        return false;
+//                    }
+//                });
 
                 // Close/Done button
                 ImageButton close = new ImageButton(cordova.getActivity());
@@ -723,7 +725,7 @@ public class InAppBrowser extends CordovaPlugin {
                 inAppWebView.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
                 inAppWebView.setId(Integer.valueOf(6));
                 inAppWebView.setWebChromeClient(new InAppChromeClient(thatWebView));
-                WebViewClient client = new InAppBrowserClient(thatWebView, edittext);
+                WebViewClient client = new InAppBrowserClient(thatWebView);
                 inAppWebView.setWebViewClient(client);
                 WebSettings settings = inAppWebView.getSettings();
                 settings.setJavaScriptEnabled(true);
@@ -770,11 +772,11 @@ public class InAppBrowser extends CordovaPlugin {
 
                 // Add the back and forward buttons to our action button container layout
                 actionButtonContainer.addView(back);
-                actionButtonContainer.addView(forward);
+//                actionButtonContainer.addView(forward);
 
                 // Add the views to our toolbar
                 toolbar.addView(actionButtonContainer);
-                toolbar.addView(edittext);
+//                toolbar.addView(edittext);
                 toolbar.addView(close);
 
                 // Don't add the toolbar if its been disabled
@@ -844,9 +846,8 @@ public class InAppBrowser extends CordovaPlugin {
          * @param webView
          * @param mEditText
          */
-        public InAppBrowserClient(CordovaWebView webView, EditText mEditText) {
+        public InAppBrowserClient(CordovaWebView webView) {
             this.webView = webView;
-            this.edittext = mEditText;
         }
 
         /**
@@ -936,9 +937,9 @@ public class InAppBrowser extends CordovaPlugin {
             }
 
             // Update the UI if we haven't already
-            if (!newloc.equals(edittext.getText().toString())) {
-                edittext.setText(newloc);
-             }
+//            if (!newloc.equals(edittext.getText().toString())) {
+//                edittext.setText(newloc);
+//             }
 
             try {
                 JSONObject obj = new JSONObject();
