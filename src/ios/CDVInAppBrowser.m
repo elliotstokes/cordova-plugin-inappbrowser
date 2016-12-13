@@ -161,9 +161,7 @@
 
     [self.inAppBrowserViewController showLocationBar:browserOptions.location];
     [self.inAppBrowserViewController showToolBar:browserOptions.toolbar :browserOptions.toolbarposition];
-    if (browserOptions.closebuttoncaption != nil) {
-        [self.inAppBrowserViewController setCloseButtonTitle:browserOptions.closebuttoncaption];
-    }
+
     // Set Presentation Style
     UIModalPresentationStyle presentationStyle = UIModalPresentationFullScreen; // default
     if (browserOptions.presentationstyle != nil) {
@@ -425,7 +423,7 @@
             [self.commandDelegate sendPluginResult:pluginResult callbackId:scriptCallbackId];
             return NO;
         }
-    } 
+    }
     //if is an app store link, let the system handle it, otherwise it fails to load it
     else if ([[ url scheme] isEqualToString:@"itms-appss"] || [[ url scheme] isEqualToString:@"itms-apps"]) {
         [theWebView stopLoading];
@@ -516,7 +514,7 @@
 #else
         _webViewDelegate = [[CDVWebViewDelegate alloc] initWithDelegate:self];
 #endif
-        
+
         [self createViews];
     }
 
@@ -568,8 +566,8 @@
     self.spinner.userInteractionEnabled = NO;
     [self.spinner stopAnimating];
 
-    self.closeButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(close)];
-    self.closeButton.enabled = YES;
+    NSString* image = @"InAppBrowser.bundle/fa-home-white.png";
+    self.closeButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:image] style:UIBarButtonItemStylePlain target:self action:@selector(close)];
 
     UIBarButtonItem* flexibleSpaceButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
 
@@ -624,24 +622,21 @@
     self.addressLabel.textColor = [UIColor colorWithWhite:1.000 alpha:1.000];
     self.addressLabel.userInteractionEnabled = NO;
 
-    NSString* frontArrowString = NSLocalizedString(@"►", nil); // create arrow from Unicode char
-    self.forwardButton = [[UIBarButtonItem alloc] initWithTitle:frontArrowString style:UIBarButtonItemStylePlain target:self action:@selector(goForward:)];
-    self.forwardButton.enabled = YES;
-    self.forwardButton.imageInsets = UIEdgeInsetsZero;
-
-    NSString* backArrowString = NSLocalizedString(@"<Back", nil); // create arrow from Unicode char
-    self.backButton = [[UIBarButtonItem alloc] initWithTitle:backArrowString style:UIBarButtonItemStylePlain target:self action:@selector(goBack:)];
-    self.backButton.enabled = YES;
+    NSString* backImage = @"InAppBrowser.bundle/back-button-white.png";
+    self.backButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:backImage] style:UIBarButtonItemStylePlain target:self action:@selector(goBack:)];
     self.backButton.imageInsets = UIEdgeInsetsZero;
+    UIFont * font = [UIFont boldSystemFontOfSize:30];
+    NSDictionary * attributes = @{NSFontAttributeName: font};
+    [self.backButton setTitleTextAttributes:attributes forState:UIControlStateNormal];
 
     UILabel *toolbarLabel = [[UILabel alloc] initWithFrame:CGRectZero];
-    toolbarLabel.text = @"Car Hire";
+    toolbarLabel.text = _browserOptions.caption;
     [toolbarLabel sizeToFit];
     toolbarLabel.backgroundColor = [UIColor clearColor];
     toolbarLabel.textAlignment = NSTextAlignmentCenter;
     UIBarButtonItem *labelItem = [[UIBarButtonItem alloc] initWithCustomView:toolbarLabel];
-    
-    
+
+
     [self.toolbar setItems:@[self.backButton, flexibleSpaceButton, labelItem, flexibleSpaceButton, self.closeButton]];
 
     self.view.backgroundColor = [UIColor grayColor];
@@ -653,20 +648,6 @@
 - (void) setWebViewFrame : (CGRect) frame {
     NSLog(@"Setting the WebView's frame to %@", NSStringFromCGRect(frame));
     [self.webView setFrame:frame];
-}
-
-- (void)setCloseButtonTitle:(NSString*)title
-{
-    // the advantage of using UIBarButtonSystemItemDone is the system will localize it for you automatically
-    // but, if you want to set this yourself, knock yourself out (we can't set the title for a system Done button, so we have to create a new one)
-    self.closeButton = nil;
-    self.closeButton = [[UIBarButtonItem alloc] initWithTitle:title style:UIBarButtonItemStyleBordered target:self action:@selector(close)];
-    self.closeButton.enabled = YES;
-    self.closeButton.tintColor = [UIColor colorWithRed:60.0 / 255.0 green:136.0 / 255.0 blue:230.0 / 255.0 alpha:1];
-
-    NSMutableArray* items = [self.toolbar.items mutableCopy];
-    [items replaceObjectAtIndex:0 withObject:self.closeButton];
-    [self.toolbar setItems:items];
 }
 
 - (void)showLocationBar:(BOOL)show
@@ -735,7 +716,7 @@
     if (show) {
         self.toolbar.hidden = NO;
         CGRect webViewBounds = self.view.bounds;
-        
+
 
         if (locationbarVisible) {
             // locationBar at the bottom, move locationBar up
@@ -887,10 +868,7 @@
 - (void)webViewDidStartLoad:(UIWebView*)theWebView
 {
     // loading url, start spinner, update back/forward
-
     self.addressLabel.text = NSLocalizedString(@"Loading...", nil);
-    self.backButton.enabled = YES;
-    self.forwardButton.enabled = theWebView.canGoForward;
 
     [self.spinner startAnimating];
 
@@ -912,8 +890,6 @@
     // update url, stop spinner, update back/forward
 
     self.addressLabel.text = [self.currentURL absoluteString];
-    self.backButton.enabled = YES;
-    self.forwardButton.enabled = theWebView.canGoForward;
 
     [self.spinner stopAnimating];
 
@@ -940,9 +916,6 @@
 {
     // log fail message, stop spinner, update back/forward
     NSLog(@"webView:didFailLoadWithError - %ld: %@", (long)error.code, [error localizedDescription]);
-
-    self.backButton.enabled = YES;
-    self.forwardButton.enabled = theWebView.canGoForward;
     [self.spinner stopAnimating];
 
     self.addressLabel.text = NSLocalizedString(@"Load Error", nil);
@@ -986,7 +959,7 @@
 {
     if (self = [super init]) {
         // default values
-        self.location = YES;
+        self.location = NO;
         self.toolbar = YES;
         self.closebuttoncaption = nil;
         self.toolbarposition = kInAppBrowserToolbarBarPositionBottom;
@@ -1000,6 +973,7 @@
         self.suppressesincrementalrendering = NO;
         self.hidden = NO;
         self.disallowoverscroll = NO;
+        self.caption = @"";
     }
 
     return self;
@@ -1108,4 +1082,3 @@
 
 
 @end
-
